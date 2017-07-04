@@ -1,0 +1,98 @@
+import smtplib
+from bs4 import BeautifulSoup
+import requests
+from time import sleep
+def send_email(msg):
+    server = smtplib.SMPT('smtp.gmail.com', 587)
+    server = starttls()
+    server.login('login', 'pass')
+    server.sendmail('login@gmail.com', 'TO', msg)
+    server.quit()
+send_email('hi from python')
+def get_page_amount():
+    source_code = requests.get('https://dixy.ru/akcii/skidki-nedeli/?PAGEN_1=1')
+    source_code.encoding = 'utf-8'
+    soup = BeautifulSoup(source_code.text, 'lxml')
+    ppl = soup.find_all('a')
+    sum = 0
+    for item in ppl:
+        if "PAGEN_1" in item.get('href'):
+            sum+=1
+    return sum
+def get_sales_number():
+    sum =0
+    for page in range(1,get_page_amount()+1):
+        source_code = requests.get('https://dixy.ru/akcii/skidki-nedeli/?PAGEN_1={}'.format(page))
+        source_code.encoding = 'utf-8'
+
+        soup = BeautifulSoup(source_code.text, 'lxml')
+
+        divs = soup.find_all('div')
+        
+        for item in soup.find_all('div', { 'class': 'product-name'}):
+            sum +=1
+    return sum
+
+start_page = 1
+sales_num = get_sales_number()
+print(sales_num)
+
+max_page = get_page_amount()
+for page in range(start_page,max_page+1):
+    source_code = requests.get('https://dixy.ru/akcii/skidki-nedeli/?PAGEN_1={}'.format(page))
+    source_code.encoding = 'utf-8'
+
+    soup = BeautifulSoup(source_code.text, 'lxml')
+
+    divs = soup.find_all('div')
+
+    for item in soup.find_all('div', { 'class': 'product-name'}):
+        print(item)
+
+while True:
+    if sales_num != get_sales_number():
+        send_email("discounts changed")
+        break
+    sales_num = get_sales_number()
+    print("Info is actual")
+    sleep(60)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.arange(start = -5, stop = 66, step = 1)
+x1 = np.arange(start=1, stop=10, step=2)
+
+y = lambda x: x**2
+y1 = lambda x1: x1**4
+plt.plot(x, y(x), label = '$x^2$')
+plt.plot(x1, y1(x1), label = '$x^4$')
+plt.legend()
+plt.savefig('my_pic.png')
+plt.show()
+'''
